@@ -7,7 +7,7 @@ import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-public abstract class ExecuteCommand
+public class ExecuteCommand
 {
     private static final String TAG = "blakey22";
 
@@ -70,7 +70,6 @@ public abstract class ExecuteCommand
         return retval;
     }
 
-
     public static boolean runAsRoot(ArrayList<String> commands)
     {
         ByteBuffer buffer = ByteBuffer.allocate(4096);
@@ -79,12 +78,7 @@ public abstract class ExecuteCommand
             return false;
         }
 
-        int execVal = runAsRoot(commands, buffer);
-        if (execVal != 0)
-        {
-            return false;
-        }
-        return true;
+        return (runAsRoot(commands, buffer) == 0);
     }
 
     public static int run(String command, ByteBuffer result)

@@ -1,8 +1,6 @@
 package com.blakey22.doubletapwake;
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -10,13 +8,11 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Switch;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-
     private Switch bootSwitch;
     private Switch wakeSwitch;
-    private SharedPreferences preferences;
+    private Preference preference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,48 +21,40 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        String pref_file = getResources().getString(R.string.preference_file_key);
-        preferences = getSharedPreferences(pref_file, Context.MODE_PRIVATE);
+        preference = new Preference(MainActivity.this);
+        bootSwitch = (Switch)findViewById(R.id.boot_switch);
+        wakeSwitch = (Switch)findViewById(R.id.wake_switch);
 
-        bootSwitch = (Switch) findViewById(R.id.boot_switch);
-        String onboot_key = getResources().getString(R.string.preference_onboot_key);
-        bootSwitch.setChecked(preferences.getBoolean(onboot_key, false));
+        // setup switch
+        bootSwitch.setChecked(preference.getItem(Preference.ITEM_ON_BOOT));
         bootSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boolean checked = ((Switch) v).isChecked();
-                if (!Util.setDoubleTapWakeState(checked)) {
-                    String msg = getResources().getString(R.string.no_root_perm);
-                    Toast toast = Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT);
-                    toast.show();
+                if (!Util.setDoubleTapWakeState(MainActivity.this, checked)) {
+                    Util.showToastMessage(MainActivity.this, R.string.no_root_perm);
                     wakeSwitch.setChecked(false);
                 } else {
                     wakeSwitch.setChecked(checked);
                 }
-                String onboot_key = getResources().getString(R.string.preference_onboot_key);
-                String enable_wake_key = getResources().getString(R.string.preference_enable_wake);
-                preferences.edit().putBoolean(onboot_key, checked).apply();
-                preferences.edit().putBoolean(enable_wake_key, checked).apply();
+                preference.setItem(Preference.ITEM_ON_BOOT, checked);
+                preference.setItem(Preference.ITEM_ENABLE_WAKEUP, checked);
             }
         });
 
-        wakeSwitch = (Switch) findViewById(R.id.wake_switch);
         wakeSwitch.setChecked(Util.isDoubleTapWakeEnabled());
         wakeSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boolean checked = ((Switch) v).isChecked();
-                if (!Util.setDoubleTapWakeState(checked)) {
-                    String msg = getResources().getString(R.string.no_root_perm);
-                    Toast toast = Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT);
-                    toast.show();
+                if (!Util.setDoubleTapWakeState(MainActivity.this, checked)) {
+                    Util.showToastMessage(MainActivity.this, R.string.no_root_perm);
                     wakeSwitch.setChecked(false);
                 }
                 else {
                     wakeSwitch.setChecked(checked);
                 }
-                String enable_wake_key = getResources().getString(R.string.preference_enable_wake);
-                preferences.edit().putBoolean(enable_wake_key, checked).apply();
+                preference.setItem(Preference.ITEM_ENABLE_WAKEUP, checked);
             }
         });
     }
@@ -89,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             builder.setTitle("About");
-            builder.setMessage("Author: BlakeY <stfl0622@gmail.com>\n\nThanks to XDA developer Flar2 for discovering this tweak.");
+            builder.setMessage("Author: BlakeY <blakeyang22@gmail.com>\n\nThanks to XDA developer Flar2 for discovering this tweak.");
             builder.create().show();
             return true;
         }
